@@ -1,0 +1,39 @@
+S SETA NEWLINE S
+S SETA Stmt S
+S SETA ENDMARKER
+Stmt SETA S_Stmt | C_Stmt
+S_Stmt SETA Expr_Stmt RS_Stmt
+RS_Stmt SETA ; S_Stmt | RS_Stmt | ; NEWLINE | NEWLINE
+Expr_Stmt SETA Testlist_star_expr ...
+Testlist_star_expr SETA (Test) | (Star_Expr) | (, (Test)) Testlist_star_expr | (, (Star_Expr)) Testlist_star_expr, | ,
+Stmt SETA Cmd Stmt
+Stmt SETA VAZIO
+Cmd SETA Exp
+Cmd SETA IF_Cmd
+Cmd SETA FOR_Cmd
+Cmd SETA WHILE_Cmd
+Exp SETA Exp + id
+Exp SETA id
+Exp SETA (Exp)
+Namedexpr_Test SETA Test RNamedexpr_Test
+RNamedexpr_Test SETA Test := Test | VAZIO
+Test SETA Or_Test RTest
+RTest SETA if Or_Test else Test | VAZIO
+Or_Test SETA And_Test ROr_Test
+ROr_Test SETA or Or_Test | VAZIO
+And_Test SETA Not_Test RAnd_Test
+RAnd_Test SETA and And_Test | VAZIO
+Not_Test SETA not Not_Test | Comparison
+Comparison SETA Expr RComparison
+RComparison SETA Comp_op Expr RComparison | VAZIO
+Comp_op SETA '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'|'is' 'not'
+IF_Stmt SETA if Namedexpr_Test : Miolo RIF_Stmt
+RIF_Stmt SETA elif Namedexpr_Test : Miolo RIF_Stmt | else : MIOLO | VAZIO
+Miolo SETA NEWLINE ident Cmd dedent
+For_Stmt SETA for id in id: Miolo
+While_Stmt SETA while Namedexpr_Test : Miolo RWhile_Stmt
+RWhile_Stmt SETA else : Miolo | VAZIO
+A SETA Cmd RP
+Func_Def SETA def nome (List_Params) : Miolo
+List_Params SETA id RList_Params
+RList_Params SETA , id RList_Params | VAZIO
