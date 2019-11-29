@@ -80,6 +80,16 @@ func (py *PyLex) Analyse(filename string) ([]lextoken.LexToken,error){
 		}
 	}
 
+	if err == nil {
+		t := lextoken.LexToken{
+			Row:    py.cursor.Row,
+			Column: py.cursor.Column,
+			Type:   lextoken.TK_EOT,
+			Value:  "EOT",
+		}
+		py.Tokens = append(py.Tokens,t)
+	}
+
 	return py.Tokens,err
 }
 

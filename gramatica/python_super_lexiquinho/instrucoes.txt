@@ -1,0 +1,53 @@
+A respeito do python_super_lexiquinho.cpp:
+
+Ele foi feito e testado principalmente em linux, compilado em gcc(7.2.0). Mas não devem haver qualquer imcopatibilidade com outras SOs.
+O programa a análise em cima do arquivo "sample.py" do diretório atual.
+O resultado (lista de tokens + C3E gerado) é tanto impresso no terminal, quando no arquivo "Saida.txt", que será salvo no diretório atual.
+Em caso de erro semántico, é retornado o erro, o token, a linha e a coluna, e então ele para de gerar o C3E.
+
+Ele reconhece atribuições de Float, Integer e String:
+	a = 1
+	a = 12.5
+	b = 3.1
+	c = "stringuinha"
+
+Aceita expressoes:
+	a = 1 + a * 4 / 2
+	a < 3
+	
+
+Instrução if/else
+	if a != 13:
+		a = 1
+		d = "if"
+	else:
+		a = 0
+		d = "else"
+
+Instrução while:
+	while a < 3:
+	a = 1 + a * 4 / 2
+	a = a + uma_funcao(2, 3)
+
+
+Na instrução FOR é esperado o seguinte formato:
+
+	for <TKId> in <range ou xrange>(TKInteger):
+		<bloco de código>
+
+Exemplo instrução FOR:
+	for i in range(4):
+		b = ainda_outra_funcao(i)
+		outra_funcao()
+
+Aceita chamada de função com número ilimitado de parâmetros:
+	uma_funcao(2, 3)
+	ainda_outra_funcao(i)
+	outra_funcao()
+Nas chamadas de função é sempre enviado N+1 parâmetros, aonde este último é responsável por obter o retorno da função
+
+A declaração de função também aceita N paramêtros, não é possível definir uma função dentro de outra, ou usar o comando "return" fora do bloco de definição de uma:
+	def uma_funcao(param1, param2):
+		ret = param1 + param2
+		return r + 5
+
