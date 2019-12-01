@@ -1,0 +1,52 @@
+A respeito do pygolex:
+
+Desenvolvido em go, o pygolex pode ser compilado tanto para Linux,Mac ou Windows. Para conhecer mais sobre go visitar https://golang.org/
+O programa pode rodar a análise em cima do arquivo "sample.py" do diretório atual este ira gerar uma saida "saida.lex".
+para isso basta executar no terminal executavel "diretorio/ate/sample.py" "saida.lex"
+Em caso de erro semántico, é retornado o erro, o token, a linha e a coluna e o arquivo de saida não é gerado.
+
+Ele reconhece atribuições de Float, Integer e String:
+	a = 1
+	a = 12.5
+	b = 3.1
+	c = "stringuinha"
+
+Aceita expressoes:
+	a = 1 + a * 4 / 2
+	a < 3
+	
+
+Instrução if/else
+	if a != 13:
+		a = 1
+		d = "if"
+	else:
+		a = 0
+		d = "else"
+
+Instrução while:
+	while a < 3:
+	a = 1 + a * 4 / 2
+	a = a + uma_funcao(2, 3)
+
+
+Na instrução FOR é esperado o seguinte formato:
+
+	for <TKId> in <range ou xrange>(TKInteger):
+		<bloco de código>
+
+Exemplo instrução FOR:
+	for i in range(4):
+		b = ainda_outra_funcao(i)
+		outra_funcao()
+
+Aceita chamada de função com número ilimitado de parâmetros:
+	uma_funcao(2, 3)
+	ainda_outra_funcao(i)
+	outra_funcao()
+
+A declaração de função também aceita N paramêtros, não é possível definir uma função dentro de outra, ou usar o comando "return" fora do bloco de definição de uma:
+	def uma_funcao(param1, param2):
+		ret = param1 + param2
+		return r + 5
+

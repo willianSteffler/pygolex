@@ -21,10 +21,10 @@ const (
 )
 
 type PyLex struct {
-	Tokens []lextoken.LexToken
+	Tokens  []lextoken.LexToken
 	indents Stack
-	cursor cursor.Cursor
-	state State
+	Cursor  cursor.Cursor
+	state   State
  }
 
 type Stack struct {
@@ -62,29 +62,38 @@ func (py *PyLex) Analyse(filename string) ([]lextoken.LexToken,error){
 		log.Fatal(err)
 	}
 
-	py.cursor = cursor.Cursor{}
-	py.cursor.Init(f)
+	py.Cursor = cursor.Cursor{}
+	py.Cursor.Init(f)
 	py.state = initialState
 
 	ok := true
 	for err == nil && ok {
 		if err,ok = py.scanIndentation(); ok{
 			err,ok = py.getToken()
-			for err == nil && py.cursor.LastChar != '\n' && ok{
+			for err == nil && py.Cursor.LastChar != '\n' && ok{
 				err,ok = py.getToken()
 			}
 
 			if !ok {
 				break
+			}else {
+				t := lextoken.LexToken{
+					Row:    py.Cursor.Row,
+					Column: py.Cursor.Column,
+					Type:   lextoken.TK_NEWLINE,
+					Value:  "NEWLINE",
+				}
+
+				py.Tokens = append(py.Tokens,t)
 			}
 		}
 	}
 
 	if err == nil {
 		t := lextoken.LexToken{
-			Row:    py.cursor.Row,
-			Column: py.cursor.Column,
-			Type:   lextoken.TK_EOT,
+			Row:    py.Cursor.Row,
+			Column: py.Cursor.Column,
+			Type:   lextoken.TK_EOF,
 			Value:  "EOT",
 		}
 		py.Tokens = append(py.Tokens,t)
@@ -95,27 +104,27 @@ func (py *PyLex) Analyse(filename string) ([]lextoken.LexToken,error){
 
 func(py *PyLex) scanIndentation() (error,bool) {
 	n := 0
-	c,ok := py.cursor.Next()
+	c,ok := py.Cursor.Next()
 	for c == ' ' && ok {
-		c,ok = py.cursor.Next()
+		c,ok = py.Cursor.Next()
 		n++
 	}
 
-	//py.cursor.Back()
+	//py.Cursor.Back()
 
 	if n > 0 && py.indents.Len() == 0 || py.indents.Len() > 0  && n>= py.indents.Top()  {
 		py.indents.Push(n)
 		py.Tokens = append (py.Tokens, lextoken.LexToken{
-			Row:    py.cursor.Row,
-			Column: py.cursor.Column,
+			Row:    py.Cursor.Row,
+			Column: py.Cursor.Column,
 			Type:   lextoken.TK_INDENT,
 			Value:  "INDENT",
 		})
 	} else if py.indents.Len() != 0 {
 	py.indents.Pop()
 		py.Tokens = append (py.Tokens, lextoken.LexToken{
-			Row:    py.cursor.Row,
-			Column: py.cursor.Column,
+			Row:    py.Cursor.Row,
+			Column: py.Cursor.Column,
 			Type:   lextoken.TK_DEINDENT,
 			Value:  "DEINDENT",
 		})
@@ -130,27 +139,27 @@ func(py *PyLex) getToken() (error,bool) {
 
 	switch py.state {
 	case initialState:
-		if py.cursor.LastChar == ' '{
-			_,hasNextChar = py.cursor.Next()
+		if py.Cursor.LastChar == ' '{
+			_,hasNextChar = py.Cursor.Next()
 			return nil,hasNextChar
 		}
-		if (py.cursor.LastChar >= '0' && py.cursor.LastChar <= '9') || py.cursor.LastChar == '-' || py.cursor.LastChar == '.'  {
+		if (py.Cursor.LastChar >= '0' && py.Cursor.LastChar <= '9') || py.Cursor.LastChar == '-' || py.Cursor.LastChar == '.'  {
 			py.state = numberState
 			return py.getToken()
 		}
 
-		if (py.cursor.LastChar >= 'a' && py.cursor.LastChar <= 'z') || (py.cursor.LastChar >= 'A' && py.cursor.LastChar <= 'Z') || py.cursor.LastChar == '_' {
+		if (py.Cursor.LastChar >= 'a' && py.Cursor.LastChar <= 'z') || (py.Cursor.LastChar >= 'A' && py.Cursor.LastChar <= 'Z') || py.Cursor.LastChar == '_' {
 			py.state = keywordState
 			return py.getToken()
 
 		}
 
-		if py.cursor.LastChar == '"' || py.cursor.LastChar == '\'' {
+		if py.Cursor.LastChar == '"' || py.Cursor.LastChar == '\'' {
 			py.state = stringState
 			return py.getToken()
 		}
 
-		if py.cursor.LastChar == '#' {
+		if py.Cursor.LastChar == '#' {
 			py.state = commentState
 			return py.getToken()
 
@@ -160,22 +169,22 @@ func(py *PyLex) getToken() (error,bool) {
 		return py.getToken()
 
 	case numberState:
-		for ((py.cursor.LastChar >= '0' && py.cursor.LastChar <= '9') ||
-			py.cursor.LastChar == '.' ||
-			py.cursor.LastChar == 'j' ||
-			py.cursor.LastChar == 'e' ||
-			py.cursor.LastChar == 'E'||
-			py.cursor.LastChar == '-') && hasNextChar{
-			if (strings.ContainsRune(lex,'j') && py.cursor.LastChar == 'j') ||
-				(strings.ContainsRune(lex,'.') && py.cursor.LastChar == '.')||
-				(strings.ContainsRune(lex,'e') && py.cursor.LastChar == 'e')||
-				(strings.ContainsRune(lex,'E') && py.cursor.LastChar == 'E')||
-				(strings.ContainsRune(lex,'-') && py.cursor.LastChar == '-'){
+		for ((py.Cursor.LastChar >= '0' && py.Cursor.LastChar <= '9') ||
+			py.Cursor.LastChar == '.' ||
+			py.Cursor.LastChar == 'j' ||
+			py.Cursor.LastChar == 'e' ||
+			py.Cursor.LastChar == 'E'||
+			py.Cursor.LastChar == '-') && hasNextChar{
+			if (strings.ContainsRune(lex,'j') && py.Cursor.LastChar == 'j') ||
+				(strings.ContainsRune(lex,'.') && py.Cursor.LastChar == '.')||
+				(strings.ContainsRune(lex,'e') && py.Cursor.LastChar == 'e')||
+				(strings.ContainsRune(lex,'E') && py.Cursor.LastChar == 'E')||
+				(strings.ContainsRune(lex,'-') && py.Cursor.LastChar == '-'){
 				return errors.New("caractere nao esperado"),hasNextChar
 			}
 
-			lex += string(py.cursor.LastChar)
-			_,hasNextChar = py.cursor.Next()
+			lex += string(py.Cursor.LastChar)
+			_,hasNextChar = py.Cursor.Next()
 		}
 
 		val := strings.ToLower(lex)
@@ -183,10 +192,17 @@ func(py *PyLex) getToken() (error,bool) {
 			return errors.New("valor numerico inesperado"),hasNextChar
 		}
 
+		tktype := lextoken.TK_INTEGER
+		if strings.Contains(val,"e") ||  strings.Contains(val,"."){
+			tktype = lextoken.TK_FLOAT
+		} else if strings.Contains(val,"j"){
+			tktype = lextoken.TK_COMPLEX
+		}
+
 		t := lextoken.LexToken{
-			Row:    py.cursor.Row,
-			Column: py.cursor.Column,
-			Type:   lextoken.TK_NUMBER,
+			Row:    py.Cursor.Row,
+			Column: py.Cursor.Column,
+			Type:   tktype,
 			Value:  lex,
 		}
 
@@ -195,13 +211,13 @@ func(py *PyLex) getToken() (error,bool) {
 	break
 
 	case keywordState:
-		for ((py.cursor.LastChar >= 'a' && py.cursor.LastChar <= 'z') ||
-			(py.cursor.LastChar >= 'A' && py.cursor.LastChar <= 'Z') ||
-			py.cursor.LastChar == '_' ||
-			py.cursor.LastChar == '.' ||
-			(py.cursor.LastChar >= '0' && py.cursor.LastChar <= '9')) && hasNextChar {
-			lex += string(py.cursor.LastChar)
-			_,hasNextChar = py.cursor.Next()
+		for ((py.Cursor.LastChar >= 'a' && py.Cursor.LastChar <= 'z') ||
+			(py.Cursor.LastChar >= 'A' && py.Cursor.LastChar <= 'Z') ||
+			py.Cursor.LastChar == '_' ||
+			py.Cursor.LastChar == '.' ||
+			(py.Cursor.LastChar >= '0' && py.Cursor.LastChar <= '9')) && hasNextChar {
+			lex += string(py.Cursor.LastChar)
+			_,hasNextChar = py.Cursor.Next()
 		}
 
 		tk,ok := lextoken.Keywords[lex]
@@ -210,8 +226,8 @@ func(py *PyLex) getToken() (error,bool) {
 		}
 
 		t := lextoken.LexToken{
-			Row:    py.cursor.Row,
-			Column: py.cursor.Column,
+			Row:    py.Cursor.Row,
+			Column: py.Cursor.Column,
 			Type:   tk,
 			Value:  lex,
 		}
@@ -222,24 +238,24 @@ func(py *PyLex) getToken() (error,bool) {
 	break
 
 	case stringState:
-		_,hasNextChar = py.cursor.Next()
+		_,hasNextChar = py.Cursor.Next()
 		if !hasNextChar {
 			return errors.New("final de arquivo inesperado"),hasNextChar
 		}
 
-		for py.cursor.LastChar != '"' && py.cursor.LastChar != '\'' && hasNextChar {
-			lex += string(py.cursor.LastChar)
-			_,hasNextChar = py.cursor.Next()
-			if !hasNextChar || py.cursor.LastChar == '\n' {
+		for py.Cursor.LastChar != '"' && py.Cursor.LastChar != '\'' && hasNextChar {
+			lex += string(py.Cursor.LastChar)
+			_,hasNextChar = py.Cursor.Next()
+			if !hasNextChar || py.Cursor.LastChar == '\n' {
 				return errors.New("não encontrado final de string \" ou '"),hasNextChar
 			}
 		}
 
-		_,hasNextChar = py.cursor.Next()
+		_,hasNextChar = py.Cursor.Next()
 
 		t := lextoken.LexToken{
-			Row:    py.cursor.Row,
-			Column: py.cursor.Column,
+			Row:    py.Cursor.Row,
+			Column: py.Cursor.Column,
 			Type:   lextoken.TK_STRING,
 			Value:  lex,
 		}
@@ -250,16 +266,16 @@ func(py *PyLex) getToken() (error,bool) {
 	break
 
 	case commentState:
-		_,hasNextChar := py.cursor.Next()
+		_,hasNextChar := py.Cursor.Next()
 
-		for py.cursor.LastChar != '\n' && hasNextChar {
-			lex += string(py.cursor.LastChar)
-			_,hasNextChar = py.cursor.Next()
+		for py.Cursor.LastChar != '\n' && hasNextChar {
+			lex += string(py.Cursor.LastChar)
+			_,hasNextChar = py.Cursor.Next()
 		}
 
 		t := lextoken.LexToken{
-			Row:    py.cursor.Row,
-			Column: py.cursor.Column,
+			Row:    py.Cursor.Row,
+			Column: py.Cursor.Column,
 			Type:   lextoken.TK_COMMENT,
 			Value:  lex,
 		}
@@ -271,12 +287,12 @@ func(py *PyLex) getToken() (error,bool) {
 
 	case operatorDelimiterState:
 		var tk lextoken.TokenT
-		lex += string(py.cursor.LastChar)
-		if py.cursor.LastChar != '\n' {
+		lex += string(py.Cursor.LastChar)
+		if py.Cursor.LastChar != '\n' {
 
 			for isOpDelim(lex) && hasNextChar{
-				_,hasNextChar = py.cursor.Next()
-				lex += string(py.cursor.LastChar)
+				_,hasNextChar = py.Cursor.Next()
+				lex += string(py.Cursor.LastChar)
 			}
 
 			ok := false
@@ -290,12 +306,13 @@ func(py *PyLex) getToken() (error,bool) {
 				return errors.New("caractere não esperado"),hasNextChar
 			}
 		} else {
-			tk = lextoken.TK_NEWLINE
+			py.state = initialState
+			return nil,hasNextChar
 		}
 
 		t := lextoken.LexToken{
-			Row:    py.cursor.Row,
-			Column: py.cursor.Column,
+			Row:    py.Cursor.Row,
+			Column: py.Cursor.Column,
 			Type:   tk,
 			Value:  lex,
 		}

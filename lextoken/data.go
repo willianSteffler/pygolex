@@ -1,12 +1,15 @@
 package lextoken
 
 type TokenT int
+
 const (
 	TK_IDENTIFIER TokenT = iota + 1
 	TK_STRING
-	TK_NUMBER
+	TK_INTEGER
+	TK_FLOAT
+	TK_COMPLEX
 	TK_NEWLINE
-	TK_EOT
+	TK_EOF
 	TK_INDENT
 	TK_DEINDENT
 	TK_COMMENT
@@ -34,6 +37,8 @@ const (
 	TK_CLASS
 	TK_EXEC
 	TK_IN
+	TK_RANGE
+	TK_XRANGE
 	TK_RAISE
 	TK_CONTINUE
 	TK_FINALLY
@@ -43,6 +48,8 @@ const (
 	TK_FOR
 	TK_LAMBDA
 	TK_TRY
+	TK_TRUE
+	TK_FALSE
 
 	// Tokens for operators
 	TK_SUM
@@ -92,87 +99,91 @@ const (
 	TK_MM_IGUAL
 )
 
-var Keywords = map[string]TokenT {
-	 "and" : TK_AND ,
-	 "del" : TK_DEL ,
-	 "from" : TK_FROM ,
-	 "not" : TK_NOT ,
-	 "while" : TK_WHILE ,
-	 "as" : TK_AS ,
-	 "elif" : TK_ELIF ,
-	 "global" : TK_GLOBAL ,
-	 "or" : TK_OR ,
-	 "with" : TK_WITH ,
-	 "assert" : TK_ASSERT ,
-	 "else" : TK_ELSE ,
-	 "if" : TK_IF ,
-	 "pass" : TK_PASS ,
-	 "yield" : TK_YIELD ,
-	 "break" : TK_BREAK ,
-	 "except" : TK_EXCEPT ,
-	 "import" : TK_IMPORT ,
-	 "print" : TK_PRINT ,
-	 "class" : TK_CLASS ,
-	 "exec" : TK_EXEC ,
-	 "in" : TK_IN ,
-	 "raise" : TK_RAISE ,
-	 "continue" : TK_CONTINUE ,
-	 "finally" : TK_FINALLY ,
-	 "is" : TK_IS ,
-	 "return" : TK_RETURN ,
-	 "def" : TK_DEF ,
-	 "for" : TK_FOR ,
-	 "lambda" : TK_LAMBDA ,
-	 "try" : TK_TRY ,
+var Keywords = map[string]TokenT{
+	"and":      TK_AND,
+	"del":      TK_DEL,
+	"from":     TK_FROM,
+	"not":      TK_NOT,
+	"while":    TK_WHILE,
+	"as":       TK_AS,
+	"elif":     TK_ELIF,
+	"global":   TK_GLOBAL,
+	"or":       TK_OR,
+	"with":     TK_WITH,
+	"assert":   TK_ASSERT,
+	"else":     TK_ELSE,
+	"if":       TK_IF,
+	"pass":     TK_PASS,
+	"yield":    TK_YIELD,
+	"break":    TK_BREAK,
+	"except":   TK_EXCEPT,
+	"import":   TK_IMPORT,
+	"print":    TK_PRINT,
+	"class":    TK_CLASS,
+	"exec":     TK_EXEC,
+	"in":       TK_IN,
+	"range":    TK_RANGE,
+	"xrange":   TK_XRANGE,
+	"raise":    TK_RAISE,
+	"continue": TK_CONTINUE,
+	"finally":  TK_FINALLY,
+	"is":       TK_IS,
+	"return":   TK_RETURN,
+	"def":      TK_DEF,
+	"for":      TK_FOR,
+	"lambda":   TK_LAMBDA,
+	"try":      TK_TRY,
+	"True":     TK_TRUE,
+	"False":    TK_FALSE,
 }
 
 var Operators = map[string]TokenT{
-	 "+" : TK_SUM ,
-	 "-" : TK_SUB ,
-	 "*" : TK_MUL ,
-	 "**" : TK_MUL_MUL ,
-	 "/" : TK_DIV ,
-	 "//" : TK_DIV_DIV ,
-	 "%" : TK_PERC ,
-	 "<<" : TK_GG ,
-	 ">>" : TK_LL ,
-	 "&" : TK_E ,
-	 "|" : TK_L ,
-	 "^" : TK_Z ,
-	 "~" : TK_DIFF ,
-	 "<" : TK_LOWER ,
-	 ">" : TK_GREATER ,
-	 "<=" : TK_LOWER_EQUAL ,
-	 ">=" : TK_GREATER_EQUAL ,
-	 "==" : TK_IGUAL ,
-	 "!=" : TK_DIFF ,
-	 "<>" : TK_DIFF ,
+	"+":  TK_SUM,
+	"-":  TK_SUB,
+	"*":  TK_MUL,
+	"**": TK_MUL_MUL,
+	"/":  TK_DIV,
+	"//": TK_DIV_DIV,
+	"%":  TK_PERC,
+	"<<": TK_GG,
+	">>": TK_LL,
+	"&":  TK_E,
+	"|":  TK_L,
+	"^":  TK_Z,
+	"~":  TK_DIFF,
+	"<":  TK_LOWER,
+	">":  TK_GREATER,
+	"<=": TK_LOWER_EQUAL,
+	">=": TK_GREATER_EQUAL,
+	"==": TK_IGUAL,
+	"!=": TK_DIFF,
+	"<>": TK_DIFF,
 }
 
-var Delimiters = map[string]TokenT {
-	 "(" : TK_OPEN_PARENTESI,
-	 ")" : TK_CLOSE_PARENTESI,
-	 "[" : TK_OPEN_BRACKET,
-	 "]" : TK_CLOSE_BRACKET,
-	 "{" : TK_OPEN_KEY,
-	 "}" : TK_CLOSE_KEY,
-	 "@" : TK_ARROBA,
-	 "," : TK_COMA,
-	 ":" : TK_TWO_DOTS,
-	 "." : TK_DOT,
-	 "`" : TK_DELM,
-	 "=" : TK_ATTR,
-	 ";" : TK_SEMICON,
-	 "+=" : TK_PLUS_IGUAL,
-	 "-=" : TK_MINUS_IGUAL,
-	 "*=" : TK_MUL_IGUAL,
-	 "/=" : TK_DIV_IGUAL,
-	 "//=" : TK_DIV_DIV_IGUAL,
-	 "%=" : TK_PERC_IGUAL,
-	 "&=" : TK_E_IGUAL,
-	 "|=" : TK_L_IGUAL,
-	 "^=" : TK_Z_IGUAL,
-	 ">>=" : TK_GG_IGUAL,
-	 "<<=" : TK_LL_IGUAL,
-	 "**=" : TK_MM_IGUAL,
+var Delimiters = map[string]TokenT{
+	"(":   TK_OPEN_PARENTESI,
+	")":   TK_CLOSE_PARENTESI,
+	"[":   TK_OPEN_BRACKET,
+	"]":   TK_CLOSE_BRACKET,
+	"{":   TK_OPEN_KEY,
+	"}":   TK_CLOSE_KEY,
+	"@":   TK_ARROBA,
+	",":   TK_COMA,
+	":":   TK_TWO_DOTS,
+	".":   TK_DOT,
+	"`":   TK_DELM,
+	"=":   TK_ATTR,
+	";":   TK_SEMICON,
+	"+=":  TK_PLUS_IGUAL,
+	"-=":  TK_MINUS_IGUAL,
+	"*=":  TK_MUL_IGUAL,
+	"/=":  TK_DIV_IGUAL,
+	"//=": TK_DIV_DIV_IGUAL,
+	"%=":  TK_PERC_IGUAL,
+	"&=":  TK_E_IGUAL,
+	"|=":  TK_L_IGUAL,
+	"^=":  TK_Z_IGUAL,
+	">>=": TK_GG_IGUAL,
+	"<<=": TK_LL_IGUAL,
+	"**=": TK_MM_IGUAL,
 }
